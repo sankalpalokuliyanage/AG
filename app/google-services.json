@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "879176444763",
+    "project_id": "agmart-38252",
+    "storage_bucket": "agmart-38252.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879176444763:android:b1aa36b4c4eea43f5d887e",
+        "android_client_info": {
+          "package_name": "com.example.agmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3YvKxAE2jXz-7W0wwMCrW6L_LXVrsiGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
