@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
+    android:background="@drawable/backgroundimage"
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
@@ -37,7 +39,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="LOGIN"
+                android:text="සාදරයෙන් පිළිගනිමු"
                 android:layout_marginTop="-30dp"
                 android:textSize="36sp"
                 android:textAlignment="center"
@@ -51,7 +53,9 @@
                 android:background="@drawable/edittext_background"
                 android:layout_marginTop="20dp"
                 android:padding="8dp"
-                android:hint="Email"
+                android:hint="ඊ තැපෑල"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"
                 android:drawableLeft="@drawable/email"
                 android:drawablePadding="8dp"
                 />
@@ -63,8 +67,10 @@
                 android:background="@drawable/edittext_background"
                 android:layout_marginTop="20dp"
                 android:padding="8dp"
-                android:hint="Password"
+                android:hint="මුරපදය"
                 android:inputType="textPassword"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"
                 android:drawableLeft="@drawable/key"
                 android:drawablePadding="8dp"
                 />
@@ -84,7 +90,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
                     android:layout_marginTop="10dp"
-                    android:text="SIGN IN"
+                    android:text="ඇතුල් වෙන්න"
                     android:textSize="24dp"
                     android:background="@android:color/transparent"
                     android:clickable="true"
@@ -105,10 +111,11 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginTop="0dp"
+                android:visibility="invisible"
                 android:text="Don't have \nAn Account?"
                 android:textSize="16dp"
                 android:background="@android:color/transparent"
-                android:clickable="true"
+                android:clickable="false"
                 android:textColor="@color/black"
                 />
 
