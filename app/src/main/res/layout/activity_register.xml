@@ -112,7 +112,7 @@
                 >
 
                 <Button
-                    android:id="@+id/signinText"
+                    android:id="@+id/signupText"
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
                     android:layout_marginStart="10dp"
