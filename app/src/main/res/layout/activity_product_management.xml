@@ -15,17 +15,17 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"
-        android:layout_width="773dp"
-        android:layout_height="1204dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@+id/btnAddProduct"
-        android:layout_marginBottom="-20dp"
-        android:paddingBottom="60dp" />
+        android:paddingBottom="60dp"
+        android:layout_marginBottom="12dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAddProduct"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/"
+        android:src="@drawable/addphoto"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
