@@ -58,8 +58,7 @@ public class AddProductActivity extends AppCompatActivity {
         if (edtName.getText().toString().isEmpty() ||
                 edtBarcode.getText().toString().isEmpty() ||
                 edtPrice.getText().toString().isEmpty() ||
-                edtStock.getText().toString().isEmpty() ||
-                imageUri == null) {
+                edtStock.getText().toString().isEmpty()) {
 
             Toast.makeText(this, "Fill all fields and select image", Toast.LENGTH_SHORT).show();
             return false;
