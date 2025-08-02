@@ -6,16 +6,16 @@ public class Product {
     public String barcode;
     public double price;
     public int stockQty;
-    public String imageUrl;
 
-    public Product() {} // Required for Firebase
 
-    public Product(String id, String name, String barcode, double price, int stockQty, String imageUrl) {
+    public Product(String name, String string, String s, double price, int stock) {} // Required for Firebase
+
+    public Product(String id, String name, String barcode, double price, int stockQty) {
         this.id = id;
         this.name = name;
         this.barcode = barcode;
         this.price = price;
         this.stockQty = stockQty;
-        this.imageUrl = imageUrl;
+
     }
 }

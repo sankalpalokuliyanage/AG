@@ -1,50 +1,43 @@
 package com.example.agmart;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.Preview;
+import androidx.camera.core.*;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.example.agmart.models.Product;
+import com.example.agmart.BillingActivity;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.database.*;
+
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
-import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 
 import java.util.concurrent.ExecutionException;
 
 public class ScanActivity extends AppCompatActivity {
-
     private PreviewView previewView;
-    private BarcodeScanner scanner;
+    private final BarcodeScanner scanner = BarcodeScanning.getClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_scan);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 101);
 
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 101);
         previewView = findViewById(R.id.previewView);
 
-        scanner = BarcodeScanning.getClient();
         startCamera();
-
     }
 
     private void startCamera() {
@@ -55,39 +48,36 @@ public class ScanActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                ImageAnalysis analysis = new ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
-                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), imageProxy -> {
-                    @SuppressLint("UnsafeOptInUsageError")
+                analysis.setAnalyzer(ContextCompat.getMainExecutor(this), imageProxy -> {
+                    @androidx.annotation.OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
                     Image mediaImage = imageProxy.getImage();
+
                     if (mediaImage != null) {
                         InputImage image = InputImage.fromMediaImage(mediaImage, imageProxy.getImageInfo().getRotationDegrees());
+
                         scanner.process(image)
                                 .addOnSuccessListener(barcodes -> {
                                     for (Barcode barcode : barcodes) {
-                                        String value = barcode.getRawValue();
-                                        if (value != null) {
-                                            Toast.makeText(this, "Scanned: " + value, Toast.LENGTH_SHORT).show();
-                                            fetchProductFromFirebase(value);
-                                            imageProxy.close();
-                                            return;
+                                        String rawValue = barcode.getRawValue();
+                                        if (rawValue != null) {
+                                            // Do something with barcode
                                         }
                                     }
                                 })
-                                .addOnFailureListener(e -> Log.e("Scan", "Barcode scan failed", e))
+                                .addOnFailureListener(e -> Log.e("Scanner", "Error", e))
                                 .addOnCompleteListener(task -> imageProxy.close());
                     } else {
                         imageProxy.close();
                     }
                 });
 
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
-
+                cameraProvider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
@@ -95,7 +85,19 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void fetchProductFromFirebase(String barcode) {
-        // Your Firebase logic goes here
-        Log.d("ScanActivity", "Scanned Barcode: " + barcode);
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("products").child(barcode);
+        dbRef.get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                Product product = snapshot.getValue(Product.class);
+                Intent intent = new Intent(this, BillingActivity.class);
+                intent.putExtra("product_name", product.name);
+                intent.putExtra("product_price", product.price);
+                intent.putExtra("product_stock", product.stockQty);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

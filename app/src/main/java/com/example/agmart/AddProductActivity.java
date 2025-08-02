@@ -79,8 +79,7 @@ public class AddProductActivity extends AppCompatActivity {
                 edtName.getText().toString(),
                 edtBarcode.getText().toString(),
                 Double.parseDouble(edtPrice.getText().toString()),
-                Integer.parseInt(edtStock.getText().toString()),
-                null
+                Integer.parseInt(edtStock.getText().toString())
         );
 
         productRef.child(id).setValue(p)
