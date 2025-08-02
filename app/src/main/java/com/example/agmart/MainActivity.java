@@ -57,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
         cardProductManagement.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, ProductManagementActivity.class)));
 
-//        cardBillingSystem.setOnClickListener(v ->
-//                startActivity(new Intent(MainActivity.this, BillingActivity.class)));
-//
+        cardBillingSystem.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, BillingActivity.class)));
+
+
+
 //        cardInventoryControl.setOnClickListener(v ->
 //                startActivity(new Intent(MainActivity.this, InventoryActivity.class)));
 //

@@ -10,7 +10,8 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
         tools:ignore="SelectedPhotoAccess" />
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -23,6 +24,9 @@
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AGMART">
+        <activity
+            android:name=".BillingActivity"
+            android:exported="false" />
         <activity
             android:name=".ScanActivity"
             android:exported="false" />
