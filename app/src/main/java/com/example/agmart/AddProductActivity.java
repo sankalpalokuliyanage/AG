@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +42,14 @@ public class AddProductActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBarUpload);
 
         productRef = FirebaseDatabase.getInstance().getReference("products");
+
+        Button scanbarcode = findViewById(R.id.scan);
+        scanbarcode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), ScanActivity.class));
+            }
+        });
 
         Button btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
