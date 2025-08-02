@@ -59,7 +59,7 @@ public class ProductManagementActivity extends AppCompatActivity {
                         productList.clear();
                         for (DataSnapshot data : snapshot.getChildren()) {
                             Product p = data.getValue(Product.class);
-                            productList.add(p);
+                            productList.add(p); 
                         }
                         adapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);

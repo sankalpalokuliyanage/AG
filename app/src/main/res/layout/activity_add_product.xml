@@ -10,17 +10,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:padding="8dp">
 
-        <ImageView
-            android:id="@+id/imgProduct"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/addphoto"
-            android:scaleType="centerCrop"
-            android:background="@drawable/image_border"
-            android:contentDescription="Product Image"
-            android:layout_marginBottom="16dp" />
+        <!-- Back Button -->
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:layout_gravity="start"
+            android:layout_marginBottom="20dp"/>
 
         <EditText
             android:id="@+id/edtName"
@@ -65,8 +65,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="12dp" />
     </LinearLayout>
 </ScrollView>
-
-

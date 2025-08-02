@@ -9,7 +9,6 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.agmart.R;
 import com.example.agmart.models.Product;
 
@@ -26,12 +25,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageProduct;
         TextView textName, textPrice, textStock;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageProduct = itemView.findViewById(R.id.imageProduct);
             textName = itemView.findViewById(R.id.textProductName);
             textPrice = itemView.findViewById(R.id.textProductPrice);
             textStock = itemView.findViewById(R.id.textProductStock);
@@ -50,13 +47,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         Product product = productList.get(position);
 
         holder.textName.setText(product.name);
-        holder.textPrice.setText("Rs. " + product.price);
+        holder.textPrice.setText("KRW " + product.price);
         holder.textStock.setText("Stock: " + product.stockQty);
-
-        Glide.with(context)
-                .load(product.imageUrl)
-                .placeholder(R.drawable.ic_placeholder)
-                .into(holder.imageProduct);
     }
 
     @Override

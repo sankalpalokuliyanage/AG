@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         cardSalesReport = findViewById(R.id.cardSalesReport);
 
         // Fetch product count from Firebase
-        FirebaseDatabase.getInstance().getReference("users")
+        FirebaseDatabase.getInstance().getReference("products")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
