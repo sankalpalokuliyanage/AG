@@ -35,11 +35,7 @@ public class BillingActivity extends AppCompatActivity {
         int stock = getIntent().getIntExtra("product_stock", 0);
 
 
-        if (name != null && price > 0) {
-            Product product = new Product(name, edtName.getText().toString(), edtBarcode.getText().toString(), price, stock, null);
-            billItems.add(product);
-            adapter.notifyDataSetChanged();
-        }
+
 
 
         Button generateBtn = findViewById(R.id.generatePdfBtn);

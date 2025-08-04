@@ -8,7 +8,9 @@ public class Product {
     public int stockQty;
 
 
-    public Product(String name, String string, String s, double price, int stock) {} // Required for Firebase
+    public Product() {
+
+    } // Required for Firebase
 
     public Product(String id, String name, String barcode, double price, int stockQty) {
         this.id = id;
