@@ -1,6 +1,7 @@
 package com.example.agmart;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -9,6 +10,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,6 +42,8 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+
+import com.example.agmart.adapters.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -220,6 +226,22 @@ public class BillingActivity extends AppCompatActivity {
         }
     }
 
+    private void printPDF(File pdfFile) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+
+            try {
+                PrintDocumentAdapter printAdapter = new PdfDocumentAdapter(this, pdfFile.getAbsolutePath());
+                printManager.print("Document", printAdapter, new PrintAttributes.Builder().build());
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error printing: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        } else {
+            Toast.makeText(this, "Printing not supported on this device", Toast.LENGTH_LONG).show();
+        }
+    }
+
 
 
     private void generatePDF() {
@@ -313,6 +335,7 @@ public class BillingActivity extends AppCompatActivity {
 
             Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
             openPdf(pdfFile);  // <-- open the PDF immediately
+            printPDF(pdfFile);
 
             // Clear cart after saving
             cartItems.clear();
