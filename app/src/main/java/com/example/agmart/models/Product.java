@@ -7,6 +7,8 @@ public class Product {
     public double price;
     public int stockQty;
 
+    // For billing only
+    public int quantity;
 
     public Product() {
 
@@ -19,5 +21,13 @@ public class Product {
         this.price = price;
         this.stockQty = stockQty;
 
+    }
+
+    // New constructor for billing
+    public Product(String id, String name, double price, int quantity) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
     }
 }
