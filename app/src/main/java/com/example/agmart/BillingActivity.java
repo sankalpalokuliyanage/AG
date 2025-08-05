@@ -1,8 +1,10 @@
 package com.example.agmart;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Button;
@@ -19,6 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.agmart.adapters.ProductAdapter;
 import com.example.agmart.database.BillDatabaseHelper;
 import com.example.agmart.models.Product;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -30,11 +36,11 @@ import java.util.List;
 
 public class BillingActivity extends AppCompatActivity {
 
+    private static final int STORAGE_PERMISSION_CODE = 1001;
+
     private List<Product> billItems = new ArrayList<>();
     private ProductAdapter adapter;
     private TextView totalText;
-    private static final int STORAGE_PERMISSION_CODE = 1001;
-
     private BillDatabaseHelper dbHelper;
 
     @Override
@@ -51,22 +57,68 @@ public class BillingActivity extends AppCompatActivity {
 
         totalText = findViewById(R.id.textTotal);
 
-        // Example: manually adding products for demo
-        billItems.add(new Product("1", "Apple", 1000, 2));
-        billItems.add(new Product("2", "Banana", 500, 3));
-        adapter.notifyDataSetChanged();
-        updateTotal();
+        loadProductsFromFirebase();  // Load products from Firebase realtime database
 
         Button generateBtn = findViewById(R.id.generatePdfBtn);
         generateBtn.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+            if (needsStoragePermission()) {
+                requestStoragePermission();
             } else {
                 generatePDF();
             }
         });
+    }
+
+    private void loadProductsFromFirebase() {
+        FirebaseDatabase.getInstance().getReference("products")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        billItems.clear();
+                        for (DataSnapshot productSnapshot : snapshot.getChildren()) {
+                            Product product = productSnapshot.getValue(Product.class);
+                            if (product != null) {
+                                // Set default quantity to 1
+                                product.quantity = 1;
+                                billItems.add(product);
+                            }
+                        }
+                        adapter.notifyDataSetChanged();
+                        updateTotal();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(BillingActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private boolean needsStoragePermission() {
+        // For Android 9 (API 28) and below, request permission
+        return Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestStoragePermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                STORAGE_PERMISSION_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                generatePDF();
+            } else {
+                Toast.makeText(this, "Storage permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void updateTotal() {
@@ -79,11 +131,12 @@ public class BillingActivity extends AppCompatActivity {
 
     private void generatePDF() {
         try {
-            File pdfFolder = new File(Environment.getExternalStorageDirectory(), "BillingPDFs");
+            File downloadsFolder = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS);
+            File pdfFolder = new File(downloadsFolder, "EDUGATE_Bills");
             if (!pdfFolder.exists()) pdfFolder.mkdirs();
 
-            String filename = "bill_" + System.currentTimeMillis() + ".pdf";
-            File pdfFile = new File(pdfFolder, filename);
+            File pdfFile = new File(pdfFolder, "bill_" + System.currentTimeMillis() + ".pdf");
 
             Document document = new Document();
             PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
@@ -96,7 +149,12 @@ public class BillingActivity extends AppCompatActivity {
             document.add(new Paragraph("\n" + totalText.getText()));
             document.close();
 
-            // Save to SQLite
+            // Notify media scanner so file is visible immediately
+            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            intent.setData(Uri.fromFile(pdfFile));
+            sendBroadcast(intent);
+
+            // Save PDF path to SQLite database
             dbHelper.insertBill(pdfFile.getAbsolutePath());
 
             Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
@@ -105,18 +163,5 @@ public class BillingActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "PDF generation failed", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    // Permissions
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                generatePDF();
-            } else {
-                Toast.makeText(this, "Storage permission denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
