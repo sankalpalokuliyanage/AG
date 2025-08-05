@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#F5F5F5"
+    android:background = "@drawable/backgroundimage"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -15,11 +15,14 @@
 
         <TextView
             android:id="@+id/textWelcome"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="AG Mart Dashboard"
+            android:textColor="@color/white"
+            android:textAlignment="center"
             android:textSize="22sp"
             android:textStyle="bold"
+            android:paddingTop="20dp"
             android:paddingBottom="16dp" />
 
         <!-- Total Products Summary Card -->
@@ -35,6 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@color/basic_color"
                 android:padding="16dp">
 
                 <TextView
@@ -42,6 +46,7 @@
                     android:layout_height="wrap_content"
                     android:text="Total Products"
                     android:textSize="16sp"
+                    android:textColor="@color/white"
                     android:textStyle="bold" />
 
                 <TextView
@@ -70,6 +75,7 @@
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardProductManagement"
                 android:layout_width="0dp"
+                android:background="@color/white"
                 android:layout_height="160dp"
                 android:layout_columnWeight="1"
                 android:layout_rowWeight="1"
@@ -106,6 +112,7 @@
                 android:layout_width="0dp"
                 android:layout_height="160dp"
                 android:layout_columnWeight="1"
+                android:background="@color/white"
                 android:layout_rowWeight="1"
                 card_view:cardCornerRadius="16dp"
                 card_view:cardElevation="6dp"
@@ -140,6 +147,7 @@
                 android:layout_width="0dp"
                 android:layout_height="160dp"
                 android:layout_columnWeight="1"
+                android:background="@color/white"
                 android:layout_rowWeight="1"
                 card_view:cardCornerRadius="16dp"
                 card_view:cardElevation="6dp"
@@ -175,6 +183,7 @@
                 android:layout_height="160dp"
                 android:layout_columnWeight="1"
                 android:layout_rowWeight="1"
+                android:background="@color/white"
                 card_view:cardCornerRadius="16dp"
                 card_view:cardElevation="6dp"
                 android:clickable="true"

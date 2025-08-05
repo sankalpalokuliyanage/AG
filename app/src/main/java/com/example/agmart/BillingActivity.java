@@ -8,9 +8,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -45,6 +48,17 @@ public class BillingActivity extends AppCompatActivity {
     private TextView totalText;
     private BillDatabaseHelper dbHelper;
 
+    // Register Activity Result Launcher for ScanActivity
+    private final ActivityResultLauncher<Intent> scanActivityLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String scannedBarcode = result.getData().getStringExtra("scanned_barcode");
+                    if (scannedBarcode != null) {
+                        fetchProductByBarcodeAndAddToCart(scannedBarcode);
+                    }
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,16 +71,26 @@ public class BillingActivity extends AppCompatActivity {
         totalText = findViewById(R.id.textTotal);
         Button generateBtn = findViewById(R.id.generatePdfBtn);
 
+        // NEW: Add Scan Button
+        Button scanBtn = new Button(this);
+        scanBtn.setText("Scan Barcode");
+        // Add this button dynamically below recyclerViewCart, or better add in XML and findViewById if preferred
+
+      scanBtn = findViewById(R.id.btnScanBarcode);
+        scanBtn.setOnClickListener(v -> {
+            Intent scanIntent = new Intent(BillingActivity.this, ScanActivity.class);
+            scanActivityLauncher.launch(scanIntent);
+        });
+
+
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewCart.setLayoutManager(new LinearLayoutManager(this));
 
-        // Correct: Using anonymous class for productsAdapter listener
         productsAdapter = new ProductAdapter(allProducts, this, false, new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
                 addToCart(product);
             }
-
             @Override
             public void onQuantityChanged(Product product, int newQuantity) {
                 // Not used here
@@ -79,7 +103,6 @@ public class BillingActivity extends AppCompatActivity {
             public void onProductClick(Product product) {
                 // Not used in cart mode
             }
-
             @Override
             public void onQuantityChanged(Product product, int newQuantity) {
                 if (newQuantity <= 0) {
@@ -100,6 +123,40 @@ public class BillingActivity extends AppCompatActivity {
                 generatePDF();
             }
         });
+
+        scanBtn.setOnClickListener(v -> {
+            Intent scanIntent = new Intent(BillingActivity.this, ScanActivity.class);
+            scanActivityLauncher.launch(scanIntent);
+        });
+    }
+
+    private void fetchProductByBarcodeAndAddToCart(String barcode) {
+        FirebaseDatabase.getInstance().getReference("products")
+                .orderByChild("barcode")
+                .equalTo(barcode)
+                .limitToFirst(1)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot ds : snapshot.getChildren()) {
+                                Product product = ds.getValue(Product.class);
+                                if (product != null) {
+                                    addToCart(product);
+                                    Toast.makeText(BillingActivity.this, product.name + " added to cart", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                            }
+                        } else {
+                            Toast.makeText(BillingActivity.this, "Product with barcode " + barcode + " not found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(BillingActivity.this, "Failed to fetch product", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void addToCart(Product product) {
@@ -132,7 +189,6 @@ public class BillingActivity extends AppCompatActivity {
                         }
                         productsAdapter.notifyDataSetChanged();
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         Toast.makeText(BillingActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
