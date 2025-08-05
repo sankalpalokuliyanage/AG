@@ -40,7 +40,20 @@ public class ProductManagementActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productList = new ArrayList<>();
-        adapter = new ProductAdapter(productList, this);
+
+        adapter = new ProductAdapter(productList, this, false, new ProductAdapter.OnProductClickListener() {
+            @Override
+            public void onProductClick(Product product) {
+                // Example action: Show product name toast or navigate to details
+                Toast.makeText(ProductManagementActivity.this, "Clicked: " + product.name, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onQuantityChanged(Product product, int newQuantity) {
+                // Not needed in product management screen (not cart)
+            }
+        });
+
         recyclerView.setAdapter(adapter);
 
         loadProducts();
@@ -59,7 +72,9 @@ public class ProductManagementActivity extends AppCompatActivity {
                         productList.clear();
                         for (DataSnapshot data : snapshot.getChildren()) {
                             Product p = data.getValue(Product.class);
-                            productList.add(p); 
+                            if (p != null) {
+                                productList.add(p);
+                            }
                         }
                         adapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);

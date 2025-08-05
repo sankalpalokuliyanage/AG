@@ -1,34 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="12dp"
-    android:background="#F5F5F5">
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    android:layout_width="match_parent" android:layout_height="match_parent">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/btnAddProduct"
-        android:paddingBottom="60dp"
-        android:layout_marginBottom="12dp" />
+        android:layout_above="@+id/btnAddProduct"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAddProduct"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/addphoto"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
         android:contentDescription="Add Product"
-        android:tint="@android:color/white" />
+        android:src="@drawable/addphoto" />
 </RelativeLayout>
