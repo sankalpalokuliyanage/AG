@@ -3,17 +3,16 @@ package com.example.agmart;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,14 +27,25 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.core.content.FileProvider;
 
 public class BillingActivity extends AppCompatActivity {
 
@@ -47,17 +57,6 @@ public class BillingActivity extends AppCompatActivity {
     private ProductAdapter productsAdapter, cartAdapter;
     private TextView totalText;
     private BillDatabaseHelper dbHelper;
-
-    // Register Activity Result Launcher for ScanActivity
-    private final ActivityResultLauncher<Intent> scanActivityLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    String scannedBarcode = result.getData().getStringExtra("scanned_barcode");
-                    if (scannedBarcode != null) {
-                        fetchProductByBarcodeAndAddToCart(scannedBarcode);
-                    }
-                }
-            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,43 +70,45 @@ public class BillingActivity extends AppCompatActivity {
         totalText = findViewById(R.id.textTotal);
         Button generateBtn = findViewById(R.id.generatePdfBtn);
 
-        // NEW: Add Scan Button
-        Button scanBtn = new Button(this);
-        scanBtn.setText("Scan Barcode");
-        // Add this button dynamically below recyclerViewCart, or better add in XML and findViewById if preferred
-
-      scanBtn = findViewById(R.id.btnScanBarcode);
-        scanBtn.setOnClickListener(v -> {
-            Intent scanIntent = new Intent(BillingActivity.this, ScanActivity.class);
-            scanActivityLauncher.launch(scanIntent);
-        });
-
-
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewCart.setLayoutManager(new LinearLayoutManager(this));
 
-        productsAdapter = new ProductAdapter(allProducts, this, false, new ProductAdapter.OnProductClickListener() {
+        productsAdapter = new ProductAdapter(allProducts, this, false, R.layout.item_product_list, new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
                 addToCart(product);
             }
+
             @Override
             public void onQuantityChanged(Product product, int newQuantity) {
-                // Not used here
+                // Not used in product list
+            }
+
+            @Override
+            public void onDeleteProduct(Product product) {
+                // No delete in product list
             }
         });
         recyclerViewProducts.setAdapter(productsAdapter);
 
-        cartAdapter = new ProductAdapter(cartItems, this, true, new ProductAdapter.OnProductClickListener() {
+        cartAdapter = new ProductAdapter(cartItems, this, true,  R.layout.item_cart_product, new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
-                // Not used in cart mode
+                // Not used in cart
             }
+
             @Override
             public void onQuantityChanged(Product product, int newQuantity) {
                 if (newQuantity <= 0) {
                     cartItems.remove(product);
                 }
+                updateTotal();
+                cartAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onDeleteProduct(Product product) {
+                cartItems.remove(product);
                 updateTotal();
                 cartAdapter.notifyDataSetChanged();
             }
@@ -123,40 +124,6 @@ public class BillingActivity extends AppCompatActivity {
                 generatePDF();
             }
         });
-
-        scanBtn.setOnClickListener(v -> {
-            Intent scanIntent = new Intent(BillingActivity.this, ScanActivity.class);
-            scanActivityLauncher.launch(scanIntent);
-        });
-    }
-
-    private void fetchProductByBarcodeAndAddToCart(String barcode) {
-        FirebaseDatabase.getInstance().getReference("products")
-                .orderByChild("barcode")
-                .equalTo(barcode)
-                .limitToFirst(1)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            for (DataSnapshot ds : snapshot.getChildren()) {
-                                Product product = ds.getValue(Product.class);
-                                if (product != null) {
-                                    addToCart(product);
-                                    Toast.makeText(BillingActivity.this, product.name + " added to cart", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                            }
-                        } else {
-                            Toast.makeText(BillingActivity.this, "Product with barcode " + barcode + " not found", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(BillingActivity.this, "Failed to fetch product", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     private void addToCart(Product product) {
@@ -189,6 +156,7 @@ public class BillingActivity extends AppCompatActivity {
                         }
                         productsAdapter.notifyDataSetChanged();
                     }
+
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         Toast.makeText(BillingActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
@@ -230,6 +198,30 @@ public class BillingActivity extends AppCompatActivity {
         }
     }
 
+    private void openPdf(File pdfFile) {
+        try {
+            Uri pdfUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    "com.example.agmart.fileprovider",  // use your actual package + ".fileprovider"
+                    pdfFile);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(pdfUri, "application/pdf");
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "No app available to open PDF", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error opening PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
+
+
     private void generatePDF() {
         if (cartItems.isEmpty()) {
             Toast.makeText(this, "Cart is empty!", Toast.LENGTH_SHORT).show();
@@ -239,7 +231,7 @@ public class BillingActivity extends AppCompatActivity {
         try {
             File downloadsFolder = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOWNLOADS);
-            File pdfFolder = new File(downloadsFolder, "EDUGATE_Bills");
+            File pdfFolder = new File(downloadsFolder, "Bills");
             if (!pdfFolder.exists()) pdfFolder.mkdirs();
 
             File pdfFile = new File(pdfFolder, "bill_" + System.currentTimeMillis() + ".pdf");
@@ -248,11 +240,69 @@ public class BillingActivity extends AppCompatActivity {
             PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
             document.open();
 
-            document.add(new Paragraph("EDUGATE - BILL RECEIPT\n\n"));
-            for (Product p : cartItems) {
-                document.add(new Paragraph(p.name + " x" + p.quantity + " - KRW " + (p.price * p.quantity)));
+            // Step 2: Load Sinhala font (from assets)
+            BaseFont sinhalaBaseFont = BaseFont.createFont("assets/fonts/NotoSansSinhala-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            Font sinhalaFont = new Font(sinhalaBaseFont, 12);
+            Font sinhalaBoldFont = new Font(sinhalaBaseFont, 14, Font.BOLD);
+
+            Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            Image logo = Image.getInstance(stream.toByteArray());
+            logo.scaleToFit(100, 100);
+            logo.setAlignment(Image.ALIGN_CENTER);
+            document.add(logo);
+
+
+            // Step 3: Title
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+            Paragraph title = new Paragraph("AG MART BILL RECEIPT", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            // Optional Sinhala Subtitle
+
+
+            document.add(new Paragraph("\n")); // Space
+
+            // Step 4: Table with Item, Qty, Price, Subtotal
+            PdfPTable table = new PdfPTable(4);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
+            table.setWidths(new float[]{3f, 1f, 2f, 2f});
+
+            // Table Header
+            Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+            String[] headers = {"Item", "Qty", "Price", "Subtotal"};
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                table.addCell(cell);
             }
-            document.add(new Paragraph("\n" + totalText.getText()));
+
+            // Table Data
+            for (Product p : cartItems) {
+                table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont))); // support Sinhala product names
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(p.quantity), sinhalaFont)));
+                table.addCell(new PdfPCell(new Phrase("₩ " + p.price, sinhalaFont)));
+                table.addCell(new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), sinhalaFont)));
+            }
+
+            document.add(table);
+
+            // Step 5: Total
+            Paragraph total = new Paragraph("Total: " + totalText.getText(), sinhalaBoldFont);
+            total.setAlignment(Element.ALIGN_RIGHT);
+            document.add(total);
+
+            // Step 6: Footer
+            Paragraph thanks = new Paragraph("\nThank You and Come Again", sinhalaFont);
+            thanks.setAlignment(Element.ALIGN_CENTER);
+            document.add(thanks);
+
+            // Step 7: Close
             document.close();
 
             Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -262,6 +312,7 @@ public class BillingActivity extends AppCompatActivity {
             dbHelper.insertBill(pdfFile.getAbsolutePath());
 
             Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            openPdf(pdfFile);  // <-- open the PDF immediately
 
             // Clear cart after saving
             cartItems.clear();
@@ -270,7 +321,7 @@ public class BillingActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "PDF generation failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

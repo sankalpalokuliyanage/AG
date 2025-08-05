@@ -41,18 +41,29 @@ public class ProductManagementActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productList = new ArrayList<>();
 
-        adapter = new ProductAdapter(productList, this, false, new ProductAdapter.OnProductClickListener() {
-            @Override
-            public void onProductClick(Product product) {
-                // Example action: Show product name toast or navigate to details
-                Toast.makeText(ProductManagementActivity.this, "Clicked: " + product.name, Toast.LENGTH_SHORT).show();
-            }
+        adapter = new ProductAdapter(
+                productList,
+                this,
+                false,                      // Not cart mode
+                R.layout.item_product,       // Use your card layout here
+                new ProductAdapter.OnProductClickListener() {
+                    @Override
+                    public void onProductClick(Product product) {
+                        Toast.makeText(ProductManagementActivity.this,
+                                "Product: " + product.name + "\nBarcode: " + product.barcode,
+                                Toast.LENGTH_SHORT).show();
+                    }
 
-            @Override
-            public void onQuantityChanged(Product product, int newQuantity) {
-                // Not needed in product management screen (not cart)
-            }
-        });
+                    @Override
+                    public void onQuantityChanged(Product product, int newQuantity) {
+                        // Not used here
+                    }
+
+                    @Override
+                    public void onDeleteProduct(Product product) {
+                        // Not used here
+                    }
+                });
 
         recyclerView.setAdapter(adapter);
 
