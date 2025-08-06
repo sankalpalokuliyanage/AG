@@ -24,39 +24,21 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         void onDeleteProduct(Product product);
     }
 
-    private List<Product> productList;
+    private final List<Product> fullProductList;     // All products, never changes
+    private final List<Product> filteredProductList; // Filtered list shown in RecyclerView
+
     private final Context context;
     private final boolean isCartMode;
     private final int itemLayoutResId;
     private final OnProductClickListener listener;
 
     public ProductAdapter(List<Product> productList, Context context, boolean isCartMode, int itemLayoutResId, OnProductClickListener listener) {
-        this.productList = productList != null ? productList : new ArrayList<>();
+        this.fullProductList = new ArrayList<>(productList != null ? productList : new ArrayList<>());
+        this.filteredProductList = new ArrayList<>(this.fullProductList);
         this.context = context;
         this.isCartMode = isCartMode;
         this.itemLayoutResId = itemLayoutResId;
         this.listener = listener;
-    }
-
-    public static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPrice, textQuantity, textStock;
-        Button btnAdd, btnPlus, btnMinus, btnDelete;
-
-        public ProductViewHolder(@NonNull View itemView, boolean isCartMode) {
-            super(itemView);
-            textName = itemView.findViewById(R.id.textProductName);
-            textPrice = itemView.findViewById(R.id.textProductPrice);
-            textStock = itemView.findViewById(R.id.textProductStock); // Optional in layout
-
-            if (isCartMode) {
-                textQuantity = itemView.findViewById(R.id.textQuantity);
-                btnPlus = itemView.findViewById(R.id.btnPlus);
-                btnMinus = itemView.findViewById(R.id.btnMinus);
-                btnDelete = itemView.findViewById(R.id.btnDelete);
-            } else {
-                btnAdd = itemView.findViewById(R.id.btnAdd);
-            }
-        }
     }
 
     @NonNull
@@ -68,7 +50,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        Product product = productList.get(position);
+        Product product = filteredProductList.get(position);
+
         holder.textName.setText(product.name);
         holder.textPrice.setText("KRW " + product.price);
 
@@ -115,16 +98,53 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
     }
 
-    public void updateProductList(List<Product> updatedList) {
-        if (updatedList != null) {
-            this.productList.clear();
-            this.productList.addAll(updatedList);
-            notifyDataSetChanged();
-        }
-    }
-
     @Override
     public int getItemCount() {
-        return productList.size();
+        return filteredProductList.size();
+    }
+
+    public void updateFullProductList(List<Product> newList) {
+        this.fullProductList.clear();
+        this.fullProductList.addAll(newList);
+        filter(""); // Show all initially
+    }
+
+    // Filter method called from BillingActivity to filter product list
+    public void filter(String query) {
+        filteredProductList.clear();
+        if (query == null || query.trim().isEmpty()) {
+            filteredProductList.addAll(fullProductList);
+        } else {
+            String lowerQuery = query.toLowerCase();
+            for (Product product : fullProductList) {
+                if (product.name.toLowerCase().contains(lowerQuery) ||
+                        product.barcode.toLowerCase().contains(lowerQuery)) {
+                    filteredProductList.add(product);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    // ViewHolder inner class
+    public static class ProductViewHolder extends RecyclerView.ViewHolder {
+        TextView textName, textPrice, textQuantity, textStock;
+        Button btnAdd, btnPlus, btnMinus, btnDelete;
+
+        public ProductViewHolder(@NonNull View itemView, boolean isCartMode) {
+            super(itemView);
+            textName = itemView.findViewById(R.id.textProductName);
+            textPrice = itemView.findViewById(R.id.textProductPrice);
+            textStock = itemView.findViewById(R.id.textProductStock);
+
+            if (isCartMode) {
+                textQuantity = itemView.findViewById(R.id.textQuantity);
+                btnPlus = itemView.findViewById(R.id.btnPlus);
+                btnMinus = itemView.findViewById(R.id.btnMinus);
+                btnDelete = itemView.findViewById(R.id.btnDelete);
+            } else {
+                btnAdd = itemView.findViewById(R.id.btnAdd);
+            }
+        }
     }
 }

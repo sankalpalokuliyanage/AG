@@ -13,13 +13,12 @@ import android.os.Environment;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,8 +46,6 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-import com.example.agmart.adapters.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,8 +58,8 @@ public class BillingActivity extends AppCompatActivity {
 
     private static final int STORAGE_PERMISSION_CODE = 1001;
 
-    private List<Product> allProducts = new ArrayList<>();
-    private List<Product> cartItems = new ArrayList<>();
+    private final List<Product> allProducts = new ArrayList<>();
+    private final List<Product> cartItems = new ArrayList<>();
 
     private ProductAdapter productsAdapter, cartAdapter;
     private TextView totalText;
@@ -79,28 +76,12 @@ public class BillingActivity extends AppCompatActivity {
         RecyclerView recyclerViewCart = findViewById(R.id.recyclerViewCart);
         totalText = findViewById(R.id.textTotal);
         Button generateBtn = findViewById(R.id.generatePdfBtn);
-
         EditText editTextSearch = findViewById(R.id.editTextSearch);
-
-
-        editTextSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterProductList(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
-
 
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewCart.setLayoutManager(new LinearLayoutManager(this));
 
+        // Initialize adapters with full product list and cart
         productsAdapter = new ProductAdapter(allProducts, this, false, R.layout.item_product_list, new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
@@ -119,7 +100,7 @@ public class BillingActivity extends AppCompatActivity {
         });
         recyclerViewProducts.setAdapter(productsAdapter);
 
-        cartAdapter = new ProductAdapter(cartItems, this, true,  R.layout.item_cart_product, new ProductAdapter.OnProductClickListener() {
+        cartAdapter = new ProductAdapter(cartItems, this, true, R.layout.item_cart_product, new ProductAdapter.OnProductClickListener() {
             @Override
             public void onProductClick(Product product) {
                 // Not used in cart
@@ -143,8 +124,22 @@ public class BillingActivity extends AppCompatActivity {
         });
         recyclerViewCart.setAdapter(cartAdapter);
 
+        // Load products from Firebase
         loadProductsFromFirebase();
 
+        // Setup search filter
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                productsAdapter.filter(s.toString());
+            }
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
+        // Generate PDF button click
         generateBtn.setOnClickListener(v -> {
             if (needsStoragePermission()) {
                 requestStoragePermission();
@@ -154,18 +149,6 @@ public class BillingActivity extends AppCompatActivity {
         });
     }
 
-
-    private void filterProductList(String query) {
-        List<Product> filteredList = new ArrayList<>();
-        for (Product product : allProducts) {
-            if (product.name.toLowerCase().contains(query.toLowerCase())) {
-                filteredList.add(product);
-            }
-        }
-
-        // Update adapter with filtered list
-        productsAdapter.updateProductList(filteredList);
-    }
     private void addToCart(Product product) {
         for (Product p : cartItems) {
             if (p.id.equals(product.id)) {
@@ -194,7 +177,7 @@ public class BillingActivity extends AppCompatActivity {
                                 allProducts.add(product);
                             }
                         }
-                        productsAdapter.notifyDataSetChanged();
+                        productsAdapter.updateFullProductList(allProducts);
                     }
 
                     @Override
@@ -240,9 +223,9 @@ public class BillingActivity extends AppCompatActivity {
 
     private void openPdf(File pdfFile) {
         try {
-            Uri pdfUri = androidx.core.content.FileProvider.getUriForFile(
+            Uri pdfUri = FileProvider.getUriForFile(
                     this,
-                    "com.example.agmart.fileprovider",  // use your actual package + ".fileprovider"
+                    "com.example.agmart.fileprovider",
                     pdfFile);
 
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -276,8 +259,6 @@ public class BillingActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void generatePDF() {
         if (cartItems.isEmpty()) {
             Toast.makeText(this, "Cart is empty!", Toast.LENGTH_SHORT).show();
@@ -285,8 +266,7 @@ public class BillingActivity extends AppCompatActivity {
         }
 
         try {
-            File downloadsFolder = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS);
+            File downloadsFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File pdfFolder = new File(downloadsFolder, "Bills");
             if (!pdfFolder.exists()) pdfFolder.mkdirs();
 
@@ -296,11 +276,12 @@ public class BillingActivity extends AppCompatActivity {
             PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
             document.open();
 
-            // Step 2: Load Sinhala font (from assets)
+            // Load Sinhala font (from assets)
             BaseFont sinhalaBaseFont = BaseFont.createFont("assets/fonts/NotoSansSinhala-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             Font sinhalaFont = new Font(sinhalaBaseFont, 12);
             Font sinhalaBoldFont = new Font(sinhalaBaseFont, 14, Font.BOLD);
 
+            // Add logo image
             Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
@@ -309,24 +290,21 @@ public class BillingActivity extends AppCompatActivity {
             logo.setAlignment(Image.ALIGN_CENTER);
             document.add(logo);
 
-
-            // Step 3: Title
+            // Title
             Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
             Paragraph title = new Paragraph("AG MART BILL RECEIPT", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
 
-            // Optional Sinhala Subtitle
-            document.add(new Paragraph("\n")); // Space
+            document.add(new Paragraph("\n")); // Spacer
 
-            // Step 4: Table with Item, Qty, Price, Subtotal
+            // Create table: Item, Qty, Price, Subtotal
             PdfPTable table = new PdfPTable(4);
             table.setWidthPercentage(100);
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
             table.setWidths(new float[]{3f, 1f, 2f, 2f});
 
-            // Table Header
             Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
             String[] headers = {"Item", "Qty", "Price", "Subtotal"};
             for (String header : headers) {
@@ -336,21 +314,18 @@ public class BillingActivity extends AppCompatActivity {
                 table.addCell(cell);
             }
 
-            // Table Data
+            // Table data rows
             for (Product p : cartItems) {
-                table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont))); // support Sinhala product names
+                table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont)));
 
-                // Quantity
                 PdfPCell qtyCell = new PdfPCell(new Phrase(String.valueOf(p.quantity), headerFont));
                 qtyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(qtyCell);
 
-                // Price
                 PdfPCell priceCell = new PdfPCell(new Phrase("₩ " + p.price, headerFont));
                 priceCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(priceCell);
 
-                // Subtotal
                 PdfPCell subtotalCell = new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), headerFont));
                 subtotalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(subtotalCell);
@@ -358,48 +333,46 @@ public class BillingActivity extends AppCompatActivity {
 
             document.add(table);
 
-            // Step 5: Total
+            // Total
             Paragraph total = new Paragraph("Total: " + totalText.getText(), titleFont);
             total.setAlignment(Element.ALIGN_RIGHT);
             document.add(total);
 
-            // Step 6: Footer
+            // Footer message
             Paragraph thanks = new Paragraph("\nThank You and Come Again", titleFont);
             thanks.setAlignment(Element.ALIGN_CENTER);
             document.add(thanks);
 
-
-            // Step 6: Store Info
+            // Store info
             Font infoFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
             Paragraph storeInfo = new Paragraph(
-                    "AG MART\n" +
-                            "Health Food Shop\n" +
-                            "Phone: 010-7348-0850\n\n", infoFont);
+                    "AG MART\nHealth Food Shop\nPhone: 010-7348-0850\n\n", infoFont);
             storeInfo.setAlignment(Element.ALIGN_CENTER);
             document.add(storeInfo);
 
-            // Step 6: Developer Info
+            // Developer info
             Font devFont = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL);
             Paragraph devInfo = new Paragraph(
-                            "Developed by: Sankalpa Lokuliyanage\n" +
-                            "Contact: 010-4832-0845", devFont);
-            storeInfo.setAlignment(Element.ALIGN_CENTER);
+                    "Developed by: Sankalpa Lokuliyanage\nContact: 010-4832-0845", devFont);
+            devInfo.setAlignment(Element.ALIGN_CENTER);
             document.add(devInfo);
 
-            // Step 7: Close
             document.close();
 
+            // Notify media scanner
             Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             intent.setData(Uri.fromFile(pdfFile));
             sendBroadcast(intent);
 
+            // Save path in DB
             dbHelper.insertBill(pdfFile.getAbsolutePath());
 
             Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-            openPdf(pdfFile);  // <-- open the PDF immediately
+
+            openPdf(pdfFile); // Open PDF immediately
             printPDF(pdfFile);
 
-            // Clear cart after saving
+            // Clear cart
             cartItems.clear();
             cartAdapter.notifyDataSetChanged();
             updateTotal();
