@@ -175,7 +175,7 @@ public class BillingActivity extends AppCompatActivity {
         for (Product p : cartItems) {
             total += p.price * p.quantity;
         }
-        totalText.setText("Total: KRW " + total);
+        totalText.setText("KRW " + total);
     }
 
     private boolean needsStoragePermission() {
@@ -283,8 +283,6 @@ public class BillingActivity extends AppCompatActivity {
             document.add(title);
 
             // Optional Sinhala Subtitle
-
-
             document.add(new Paragraph("\n")); // Space
 
             // Step 4: Table with Item, Qty, Price, Subtotal
@@ -307,22 +305,40 @@ public class BillingActivity extends AppCompatActivity {
             // Table Data
             for (Product p : cartItems) {
                 table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont))); // support Sinhala product names
-                table.addCell(new PdfPCell(new Phrase(String.valueOf(p.quantity), sinhalaFont)));
-                table.addCell(new PdfPCell(new Phrase("₩ " + p.price, sinhalaFont)));
-                table.addCell(new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), sinhalaFont)));
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(p.quantity), headerFont)));
+                table.addCell(new PdfPCell(new Phrase("₩ " + p.price, headerFont)));
+                table.addCell(new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), headerFont)));
             }
 
             document.add(table);
 
             // Step 5: Total
-            Paragraph total = new Paragraph("Total: " + totalText.getText(), sinhalaBoldFont);
+            Paragraph total = new Paragraph("Total: " + totalText.getText(), titleFont);
             total.setAlignment(Element.ALIGN_RIGHT);
             document.add(total);
 
             // Step 6: Footer
-            Paragraph thanks = new Paragraph("\nThank You and Come Again", sinhalaFont);
+            Paragraph thanks = new Paragraph("\nThank You and Come Again", titleFont);
             thanks.setAlignment(Element.ALIGN_CENTER);
             document.add(thanks);
+
+
+            // Step 6: Store Info
+            Font infoFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+            Paragraph storeInfo = new Paragraph(
+                    "AG MART\n" +
+                            "Health Food Shop\n" +
+                            "Phone: 010-7348-0850\n\n", infoFont);
+            storeInfo.setAlignment(Element.ALIGN_CENTER);
+            document.add(storeInfo);
+
+            // Step 6: Developer Info
+            Font devFont = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL);
+            Paragraph devInfo = new Paragraph(
+                            "Developed by: Sankalpa Lokuliyanage\n" +
+                            "Contact: 010-4832-0845", devFont);
+            storeInfo.setAlignment(Element.ALIGN_CENTER);
+            document.add(devInfo);
 
             // Step 7: Close
             document.close();
