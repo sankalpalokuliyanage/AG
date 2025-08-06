@@ -13,14 +13,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        >
+        android:gravity="center_vertical">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/textProductName"
@@ -51,13 +50,15 @@
                 android:layout_height="40dp"
                 android:text="-" />
 
-            <TextView
-                android:id="@+id/textQuantity"
+            <!-- Editable quantity -->
+            <EditText
+                android:id="@+id/editQuantity"
                 android:layout_width="40dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="1"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:inputType="number" />
 
             <Button
                 android:id="@+id/btnPlus"
@@ -65,7 +66,6 @@
                 android:layout_height="40dp"
                 android:text="+" />
 
-            <!-- DELETE BUTTON -->
             <Button
                 android:id="@+id/btnDelete"
                 android:layout_width="wrap_content"
@@ -75,7 +75,6 @@
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackground"
                 android:layout_marginStart="12dp" />
-
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

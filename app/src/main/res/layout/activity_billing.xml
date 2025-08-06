@@ -5,15 +5,13 @@
     android:layout_height="match_parent"
     android:padding="8dp">
 
-    <EditText
-        android:id="@+id/editTextSearch"
+
+    <SearchView
+        android:id="@+id/searchViewProducts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search products..."
-        android:padding="12dp"
-        android:drawableLeft="@android:drawable/ic_menu_search"
-        android:background="@android:drawable/editbox_background"
-        android:inputType="text" />
+        android:queryHint="Search products..." />
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"
@@ -40,6 +38,6 @@
         android:id="@+id/generatePdfBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Generate PDF" />
+        android:text="PRINT" />
 
 </LinearLayout>
