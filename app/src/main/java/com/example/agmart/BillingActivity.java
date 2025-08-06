@@ -14,6 +14,8 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.agmart.adapters.ProductAdapter;
 import com.example.agmart.database.BillDatabaseHelper;
+import com.example.agmart.models.BillRecord;
 import com.example.agmart.models.Product;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -67,6 +70,10 @@ public class BillingActivity extends AppCompatActivity {
     private TextView totalText;
     private BillDatabaseHelper dbHelper;
 
+
+    private EditText editCustomerName, editCustomerPhone;
+    private CheckBox checkboxPaid;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +103,10 @@ public class BillingActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        editCustomerName = findViewById(R.id.editCustomerName);
+        editCustomerPhone = findViewById(R.id.editCustomerPhone);
+        checkboxPaid = findViewById(R.id.checkboxPaid);
 
 
 
@@ -306,6 +317,27 @@ public class BillingActivity extends AppCompatActivity {
             document.add(logo);
 
 
+            // Add Customer Info Paragraphs
+
+            String customerName = editCustomerName.getText().toString().trim();
+            String customerPhone = editCustomerPhone.getText().toString().trim();
+            boolean isPaid = checkboxPaid.isChecked();
+
+            Font infoFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+            Paragraph custInfo = new Paragraph("Customer Name: " + customerName, infoFont);
+            custInfo.setAlignment(Element.ALIGN_LEFT);
+            document.add(custInfo);
+
+            Paragraph custPhone = new Paragraph("Customer Phone: " + customerPhone, infoFont);
+            custPhone.setAlignment(Element.ALIGN_LEFT);
+            document.add(custPhone);
+
+            Paragraph paidStatus = new Paragraph("Paid Status: " + (isPaid ? "Paid" : "Unpaid"), infoFont);
+            paidStatus.setAlignment(Element.ALIGN_LEFT);
+            document.add(paidStatus);
+
+            document.add(new Paragraph("\n")); // Space before title
+
             // Step 3: Title
             Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
             Paragraph title = new Paragraph("AG MART BILL RECEIPT", titleFont);
@@ -366,7 +398,7 @@ public class BillingActivity extends AppCompatActivity {
 
 
             // Step 6: Store Info
-            Font infoFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+            infoFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
             Paragraph storeInfo = new Paragraph(
                     "AG MART\n" +
                             "Health Food Shop\n" +
@@ -390,6 +422,16 @@ public class BillingActivity extends AppCompatActivity {
             sendBroadcast(intent);
 
             dbHelper.insertBill(pdfFile.getAbsolutePath());
+
+
+            BillRecord billRecord = new BillRecord(customerName, customerPhone, isPaid, pdfFile.getAbsolutePath(), cartItems);
+
+            // Save using phone as key
+            FirebaseDatabase.getInstance().getReference("bills")
+                    .child(customerPhone)
+                    .setValue(billRecord)
+                    .addOnSuccessListener(aVoid -> Toast.makeText(this, "Bill saved to Firebase", Toast.LENGTH_SHORT).show())
+                    .addOnFailureListener(e -> Toast.makeText(this, "Failed to save bill: " + e.getMessage(), Toast.LENGTH_LONG).show());
 
             Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
             openPdf(pdfFile);  // <-- open the PDF immediately

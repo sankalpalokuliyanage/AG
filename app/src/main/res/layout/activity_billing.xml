@@ -26,6 +26,32 @@
         android:layout_weight="1"
         android:background="#f0f0f0" />
 
+    <!-- Add inside your LinearLayout, above totalText TextView -->
+
+    <EditText
+        android:id="@+id/editCustomerName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Customer Name"
+        android:inputType="textPersonName"
+        android:padding="8dp"/>
+
+    <EditText
+        android:id="@+id/editCustomerPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Customer Phone Number"
+        android:inputType="phone"
+        android:padding="8dp"/>
+
+    <CheckBox
+        android:id="@+id/checkboxPaid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Paid?"
+        android:padding="8dp"/>
+
+
     <TextView
         android:id="@+id/textTotal"
         android:layout_width="match_parent"
