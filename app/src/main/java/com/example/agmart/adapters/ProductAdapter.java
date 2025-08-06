@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.agmart.R;
 import com.example.agmart.models.Product;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
@@ -23,14 +24,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         void onDeleteProduct(Product product);
     }
 
-    private final List<Product> productList;
+    private List<Product> productList;
     private final Context context;
     private final boolean isCartMode;
     private final int itemLayoutResId;
     private final OnProductClickListener listener;
 
     public ProductAdapter(List<Product> productList, Context context, boolean isCartMode, int itemLayoutResId, OnProductClickListener listener) {
-        this.productList = productList;
+        this.productList = productList != null ? productList : new ArrayList<>();
         this.context = context;
         this.isCartMode = isCartMode;
         this.itemLayoutResId = itemLayoutResId;
@@ -45,7 +46,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             super(itemView);
             textName = itemView.findViewById(R.id.textProductName);
             textPrice = itemView.findViewById(R.id.textProductPrice);
-            textStock = itemView.findViewById(R.id.textProductStock); // Only exists in item_product.xml
+            textStock = itemView.findViewById(R.id.textProductStock); // Optional in layout
 
             if (isCartMode) {
                 textQuantity = itemView.findViewById(R.id.textQuantity);
@@ -111,6 +112,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     if (listener != null) listener.onDeleteProduct(product);
                 });
             }
+        }
+    }
+
+    public void updateProductList(List<Product> updatedList) {
+        if (updatedList != null) {
+            this.productList.clear();
+            this.productList.addAll(updatedList);
+            notifyDataSetChanged();
         }
     }
 

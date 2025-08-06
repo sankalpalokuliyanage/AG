@@ -17,6 +17,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -76,6 +80,24 @@ public class BillingActivity extends AppCompatActivity {
         totalText = findViewById(R.id.textTotal);
         Button generateBtn = findViewById(R.id.generatePdfBtn);
 
+        EditText editTextSearch = findViewById(R.id.editTextSearch);
+
+
+        editTextSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterProductList(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+
+
         recyclerViewProducts.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewCart.setLayoutManager(new LinearLayoutManager(this));
 
@@ -132,6 +154,18 @@ public class BillingActivity extends AppCompatActivity {
         });
     }
 
+
+    private void filterProductList(String query) {
+        List<Product> filteredList = new ArrayList<>();
+        for (Product product : allProducts) {
+            if (product.name.toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(product);
+            }
+        }
+
+        // Update adapter with filtered list
+        productsAdapter.updateProductList(filteredList);
+    }
     private void addToCart(Product product) {
         for (Product p : cartItems) {
             if (p.id.equals(product.id)) {
@@ -305,9 +339,21 @@ public class BillingActivity extends AppCompatActivity {
             // Table Data
             for (Product p : cartItems) {
                 table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont))); // support Sinhala product names
-                table.addCell(new PdfPCell(new Phrase(String.valueOf(p.quantity), headerFont)));
-                table.addCell(new PdfPCell(new Phrase("₩ " + p.price, headerFont)));
-                table.addCell(new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), headerFont)));
+
+                // Quantity
+                PdfPCell qtyCell = new PdfPCell(new Phrase(String.valueOf(p.quantity), headerFont));
+                qtyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(qtyCell);
+
+                // Price
+                PdfPCell priceCell = new PdfPCell(new Phrase("₩ " + p.price, headerFont));
+                priceCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(priceCell);
+
+                // Subtotal
+                PdfPCell subtotalCell = new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), headerFont));
+                subtotalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(subtotalCell);
             }
 
             document.add(table);
