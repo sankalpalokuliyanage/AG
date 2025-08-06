@@ -316,9 +316,7 @@ public class BillingActivity extends AppCompatActivity {
             logo.setAlignment(Image.ALIGN_CENTER);
             document.add(logo);
 
-
             // Add Customer Info Paragraphs
-
             String customerName = editCustomerName.getText().toString().trim();
             String customerPhone = editCustomerPhone.getText().toString().trim();
             boolean isPaid = checkboxPaid.isChecked();
@@ -344,7 +342,6 @@ public class BillingActivity extends AppCompatActivity {
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
 
-            // Optional Sinhala Subtitle
             document.add(new Paragraph("\n")); // Space
 
             // Step 4: Table with Item, Qty, Price, Subtotal
@@ -368,17 +365,14 @@ public class BillingActivity extends AppCompatActivity {
             for (Product p : cartItems) {
                 table.addCell(new PdfPCell(new Phrase(p.name, sinhalaFont))); // support Sinhala product names
 
-                // Quantity
                 PdfPCell qtyCell = new PdfPCell(new Phrase(String.valueOf(p.quantity), headerFont));
                 qtyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(qtyCell);
 
-                // Price
                 PdfPCell priceCell = new PdfPCell(new Phrase("₩ " + p.price, headerFont));
                 priceCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(priceCell);
 
-                // Subtotal
                 PdfPCell subtotalCell = new PdfPCell(new Phrase("₩ " + (p.price * p.quantity), headerFont));
                 subtotalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(subtotalCell);
@@ -396,7 +390,6 @@ public class BillingActivity extends AppCompatActivity {
             thanks.setAlignment(Element.ALIGN_CENTER);
             document.add(thanks);
 
-
             // Step 6: Store Info
             infoFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
             Paragraph storeInfo = new Paragraph(
@@ -409,9 +402,9 @@ public class BillingActivity extends AppCompatActivity {
             // Step 6: Developer Info
             Font devFont = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL);
             Paragraph devInfo = new Paragraph(
-                            "Developed by: Sankalpa Lokuliyanage\n" +
+                    "Developed by: Sankalpa Lokuliyanage\n" +
                             "Contact: 010-4832-0845", devFont);
-            storeInfo.setAlignment(Element.ALIGN_CENTER);
+            devInfo.setAlignment(Element.ALIGN_CENTER);
             document.add(devInfo);
 
             // Step 7: Close
@@ -421,26 +414,59 @@ public class BillingActivity extends AppCompatActivity {
             intent.setData(Uri.fromFile(pdfFile));
             sendBroadcast(intent);
 
-            dbHelper.insertBill(pdfFile.getAbsolutePath());
+            int currentBillAmount = calculateTotal();
+            boolean is_Paid = checkboxPaid.isChecked();
 
 
-            BillRecord billRecord = new BillRecord(customerName, customerPhone, isPaid, pdfFile.getAbsolutePath(), cartItems);
-
-            // Save using phone as key
+            // Now, update Firebase with accumulated remaining payment logic
             FirebaseDatabase.getInstance().getReference("bills")
                     .child(customerPhone)
-                    .setValue(billRecord)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(this, "Bill saved to Firebase", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(this, "Failed to save bill: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                            BillRecord existingRecord = snapshot.getValue(BillRecord.class);
+                            int updatedTotalAmount = currentBillAmount;
+                            int remainingPayment = currentBillAmount;
 
-            Toast.makeText(this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-            openPdf(pdfFile);  // <-- open the PDF immediately
-            printPDF(pdfFile);
+                            if (!is_Paid) { // ONLY add if NOT paid now
+                                if (existingRecord != null && !existingRecord.paid) {
+                                    updatedTotalAmount += existingRecord.totalAmount;
+                                }
+                            } else {
+                                // Paid now - do NOT add current bill to remaining, keep existing unpaid amount
+                                if (existingRecord != null) {
+                                    updatedTotalAmount = existingRecord.totalAmount;  // Keep old remaining unpaid amount as is
+                                } else {
+                                    updatedTotalAmount = 0;  // No previous record means no remaining amount
+                                }
+                            }
+                            // Always mark new bill as unpaid since payment pending for new purchase
+                            BillRecord updatedRecord = new BillRecord(customerName, customerPhone, updatedTotalAmount, false, pdfFile.getAbsolutePath(), new ArrayList<>(cartItems));
 
-            // Clear cart after saving
-            cartItems.clear();
-            cartAdapter.notifyDataSetChanged();
-            updateTotal();
+                            // Insert into SQLite local DB
+                            dbHelper.insertBill(pdfFile.getAbsolutePath());
+
+                            FirebaseDatabase.getInstance().getReference("bills")
+                                    .child(customerPhone)
+                                    .setValue(updatedRecord)
+                                    .addOnSuccessListener(aVoid -> Toast.makeText(BillingActivity.this, "Bill saved to Firebase", Toast.LENGTH_SHORT).show())
+                                    .addOnFailureListener(e -> Toast.makeText(BillingActivity.this, "Failed to save bill: " + e.getMessage(), Toast.LENGTH_LONG).show());
+
+                            Toast.makeText(BillingActivity.this, "PDF saved to " + pdfFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                            openPdf(pdfFile);
+                            printPDF(pdfFile);
+
+                            // Clear cart after saving
+                            cartItems.clear();
+                            cartAdapter.notifyDataSetChanged();
+                            updateTotal();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                            Toast.makeText(BillingActivity.this, "Failed to access existing bill: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -449,6 +475,14 @@ public class BillingActivity extends AppCompatActivity {
     }
 
 
+
+    private int calculateTotal() {
+        int total = 0;
+        for (Product p : cartItems) {
+            total += p.price * p.quantity;
+        }
+        return total;
+    }
 
     private void filterProducts(String query) {
         if (query == null || query.trim().isEmpty()) {

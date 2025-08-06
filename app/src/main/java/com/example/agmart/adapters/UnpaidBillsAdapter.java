@@ -1,12 +1,16 @@
 package com.example.agmart.adapters;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +36,7 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
     }
 
     public static class BillViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPhone, textPaidStatus;
+        TextView textName, textPhone, textPaidStatus, textTotal;
         Button btnMarkPaid, btnOpenPdf;
 
         public BillViewHolder(@NonNull View itemView) {
@@ -40,6 +44,7 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
             textName = itemView.findViewById(R.id.textCustomerName);
             textPhone = itemView.findViewById(R.id.textCustomerPhone);
             textPaidStatus = itemView.findViewById(R.id.textPaidStatus);
+            textTotal = itemView.findViewById(R.id.textTotalAmount);
             btnMarkPaid = itemView.findViewById(R.id.btnMarkPaid);
             btnOpenPdf = itemView.findViewById(R.id.btnOpenPdf);
         }
@@ -56,26 +61,58 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
     public void onBindViewHolder(@NonNull BillViewHolder holder, int position) {
         BillRecord bill = billList.get(position);
 
-        holder.textName.setText(bill.customerName);
-        holder.textPhone.setText(bill.customerPhone);
-        holder.textPaidStatus.setText(bill.paid ? "Paid" : "Unpaid");
+        holder.textName.setText("Name: " + bill.customerName);
+        holder.textPhone.setText("Phone: " + bill.customerPhone);
+        holder.textPaidStatus.setText("Status: " + (bill.paid ? "Paid" : "Unpaid"));
+        holder.textTotal.setText("Total: " + bill.totalAmount + " KRW");
 
         holder.btnMarkPaid.setOnClickListener(v -> {
-            // Update paid status in Firebase
-            FirebaseDatabase.getInstance().getReference("bills")
-                    .child(bill.customerPhone)
-                    .child("paid")
-                    .setValue(true)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Marked as paid", Toast.LENGTH_SHORT).show();
-                        bill.paid = true;
-                        holder.textPaidStatus.setText("Paid");
-                        // Optionally remove from list & notify adapter
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Payment");
+
+            final EditText input = new EditText(context);
+            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+            input.setHint("Enter amount paid");
+            builder.setView(input);
+
+            builder.setPositiveButton("Pay", (dialog, which) -> {
+                try {
+                    int amountPaid = Integer.parseInt(input.getText().toString().trim());
+
+                    if (amountPaid >= bill.totalAmount) {
+                        // Mark as fully paid
+                        FirebaseDatabase.getInstance().getReference("bills")
+                                .child(bill.customerPhone)
+                                .child("paid").setValue(true);
+
+                        FirebaseDatabase.getInstance().getReference("bills")
+                                .child(bill.customerPhone)
+                                .child("totalAmount").setValue(0);
+
+                        Toast.makeText(context, "Fully Paid", Toast.LENGTH_SHORT).show();
                         billList.remove(bill);
                         notifyItemRemoved(position);
                         notifyItemRangeChanged(position, billList.size());
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(context, "Failed to mark paid: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    } else {
+                        // Partial payment
+                        int remaining = bill.totalAmount - amountPaid;
+
+                        FirebaseDatabase.getInstance().getReference("bills")
+                                .child(bill.customerPhone)
+                                .child("totalAmount").setValue(remaining);
+
+                        Toast.makeText(context, "Remaining: " + remaining + " KRW", Toast.LENGTH_SHORT).show();
+                        bill.totalAmount = remaining;
+                        notifyItemChanged(position);
+                    }
+
+                } catch (NumberFormatException e) {
+                    Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+            builder.show();
         });
 
         holder.btnOpenPdf.setOnClickListener(v -> {
@@ -83,6 +120,7 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
                 Toast.makeText(context, "PDF not available", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             File pdfFile = new File(bill.pdfPath);
             if (!pdfFile.exists()) {
                 Toast.makeText(context, "PDF file not found", Toast.LENGTH_SHORT).show();

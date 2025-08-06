@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -64,13 +65,16 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
 
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPrice, textQuantity, textStock;
+        TextView textName, textPrice, textStock;
+
+        EditText textQuantity;
         Button btnAdd, btnPlus, btnMinus, btnDelete;
 
         public ProductViewHolder(@NonNull View itemView, boolean isCartMode) {
             super(itemView);
             textName = itemView.findViewById(R.id.textProductName);
             textPrice = itemView.findViewById(R.id.textProductPrice);
+            textQuantity = itemView.findViewById(R.id.editQuantity);
             textStock = itemView.findViewById(R.id.textProductStock); // Only exists in item_product.xml
 
             if (isCartMode) {
@@ -92,6 +96,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     @Override
+
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product product = productList.get(position);
         holder.textName.setText(product.name);
@@ -103,42 +108,55 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             }
             if (holder.btnAdd != null) {
                 holder.btnAdd.setOnClickListener(v -> {
-                    if (listener != null) listener.onProductClick(product);
+                    if (listener != null) {
+                        listener.onProductClick(product);
+                    }
                 });
             }
         } else {
-            // Cart mode logic
+            // Cart mode: show quantity and handle buttons
             if (holder.textQuantity != null) {
                 holder.textQuantity.setText(String.valueOf(product.quantity));
             }
 
             if (holder.btnPlus != null) {
                 holder.btnPlus.setOnClickListener(v -> {
-                    int newQty = product.quantity + 1;
-                    product.quantity = newQty;
-                    holder.textQuantity.setText(String.valueOf(newQty));
-                    if (listener != null) listener.onQuantityChanged(product, newQty);
+                    int newQuantity = product.quantity + 1;
+                    product.quantity = newQuantity;
+                    if (holder.textQuantity != null) {
+                        holder.textQuantity.setText(String.valueOf(newQuantity));
+                    }
+                    if (listener != null) {
+                        listener.onQuantityChanged(product, newQuantity);
+                    }
                 });
             }
 
             if (holder.btnMinus != null) {
                 holder.btnMinus.setOnClickListener(v -> {
                     if (product.quantity > 1) {
-                        int newQty = product.quantity - 1;
-                        product.quantity = newQty;
-                        holder.textQuantity.setText(String.valueOf(newQty));
-                        if (listener != null) listener.onQuantityChanged(product, newQty);
+                        int newQuantity = product.quantity - 1;
+                        product.quantity = newQuantity;
+                        if (holder.textQuantity != null) {
+                            holder.textQuantity.setText(String.valueOf(newQuantity));
+                        }
+                        if (listener != null) {
+                            listener.onQuantityChanged(product, newQuantity);
+                        }
                     }
                 });
             }
 
             if (holder.btnDelete != null) {
                 holder.btnDelete.setOnClickListener(v -> {
-                    if (listener != null) listener.onDeleteProduct(product);
+                    if (listener != null) {
+                        listener.onDeleteProduct(product);
+                    }
                 });
             }
         }
     }
+
 
     @Override
     public int getItemCount() {
