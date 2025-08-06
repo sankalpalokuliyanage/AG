@@ -163,13 +163,13 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/inventory"
+                        android:src="@drawable/cash"
                          />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Inventory Control"
+                        android:text="Credit Control"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:paddingTop="8dp"/>
