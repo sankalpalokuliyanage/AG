@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class AddProductActivity extends AppCompatActivity {
 
-    private EditText edtName, edtBarcode, edtPrice, edtStock;
+    private EditText edtName, edtPrice, edtStock;
     private Button btnSave;
     private ProgressBar progressBar;
 
@@ -35,7 +35,7 @@ public class AddProductActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_product);
 
         edtName = findViewById(R.id.edtName);
-        edtBarcode = findViewById(R.id.edtBarcode);
+
         edtPrice = findViewById(R.id.edtPrice);
         edtStock = findViewById(R.id.edtStock);
         btnSave = findViewById(R.id.btnSave);
@@ -43,13 +43,7 @@ public class AddProductActivity extends AppCompatActivity {
 
         productRef = FirebaseDatabase.getInstance().getReference("products");
 
-        Button scanbarcode = findViewById(R.id.scan);
-        scanbarcode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), ScanActivity.class));
-            }
-        });
+
 
         Button btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
@@ -65,32 +59,32 @@ public class AddProductActivity extends AppCompatActivity {
 
     private boolean validateInputs() {
         return !edtName.getText().toString().isEmpty() &&
-                !edtBarcode.getText().toString().isEmpty() &&
+
                 !edtPrice.getText().toString().isEmpty() &&
                 !edtStock.getText().toString().isEmpty();
     }
 
     private void saveProductToFirebase() {
-        progressBar.setVisibility(ProgressBar.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE); //
 
         String id = productRef.push().getKey();
         Product p = new Product(
                 id,
                 edtName.getText().toString(),
-                edtBarcode.getText().toString(),
                 Double.parseDouble(edtPrice.getText().toString()),
                 Integer.parseInt(edtStock.getText().toString())
         );
 
         productRef.child(id).setValue(p)
                 .addOnSuccessListener(aVoid -> {
-                    progressBar.setVisibility(ProgressBar.GONE);
+                    progressBar.setVisibility(View.GONE); //
                     Toast.makeText(this, "Product added!", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    progressBar.setVisibility(ProgressBar.GONE);
+                    progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 }

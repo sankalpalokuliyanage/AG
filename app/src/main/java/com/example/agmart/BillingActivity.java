@@ -175,7 +175,7 @@ public class BillingActivity extends AppCompatActivity {
                 return;
             }
         }
-        Product newProduct = new Product(product.id, product.name, product.barcode, product.price, product.stockQty);
+        Product newProduct = new Product(product.id, product.name, product.price, product.stockQty);
         newProduct.quantity = 1;
         cartItems.add(newProduct);
         cartAdapter.notifyDataSetChanged();
@@ -493,8 +493,7 @@ public class BillingActivity extends AppCompatActivity {
 
         List<Product> filteredList = new ArrayList<>();
         for (Product product : productsAdapter.getFullList()) {
-            if (product.name.toLowerCase().contains(query.toLowerCase()) ||
-                    product.barcode.toLowerCase().contains(query.toLowerCase())) {
+            if (product.name.toLowerCase().contains(query.toLowerCase())) {
                 filteredList.add(product);
             }
         }

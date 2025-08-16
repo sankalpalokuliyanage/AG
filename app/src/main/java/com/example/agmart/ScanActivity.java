@@ -110,7 +110,7 @@ public class ScanActivity extends AppCompatActivity {
                                     intent.putExtra("product_name", product.name);
                                     intent.putExtra("product_price", product.price);
                                     intent.putExtra("product_stock", product.stockQty);
-                                    intent.putExtra("product_barcode", product.barcode);
+
                                     startActivity(intent);
                                     finish();
                                     break;
