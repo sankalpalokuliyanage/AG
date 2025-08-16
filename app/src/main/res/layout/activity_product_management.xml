@@ -26,5 +26,5 @@
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
         android:contentDescription="Add Product"
-        android:src="@drawable/addphoto" />
+        android:src="@drawable/products" />
 </RelativeLayout>

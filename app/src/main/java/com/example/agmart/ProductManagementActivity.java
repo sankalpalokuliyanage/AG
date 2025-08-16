@@ -50,7 +50,7 @@ public class ProductManagementActivity extends AppCompatActivity {
                     @Override
                     public void onProductClick(Product product) {
                         Toast.makeText(ProductManagementActivity.this,
-                                "Product: " + product.name ,
+                                "Product: " + product.name + "\nBarcode: " + product.barcode,
                                 Toast.LENGTH_SHORT).show();
                     }
 
