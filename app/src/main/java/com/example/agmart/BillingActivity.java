@@ -49,6 +49,10 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import com.example.agmart.adapters.*;
 
 import java.io.ByteArrayOutputStream;
@@ -303,6 +307,10 @@ public class BillingActivity extends AppCompatActivity {
             PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
             document.open();
 
+            // Inside generatePDF() before creating BillRecord
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            String currentTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
+
             // Step 2: Load Sinhala font (from assets)
             BaseFont sinhalaBaseFont = BaseFont.createFont("assets/fonts/NotoSansSinhala-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             Font sinhalaFont = new Font(sinhalaBaseFont, 12);
@@ -441,7 +449,16 @@ public class BillingActivity extends AppCompatActivity {
                                 }
                             }
                             // Always mark new bill as unpaid since payment pending for new purchase
-                            BillRecord updatedRecord = new BillRecord(customerName, customerPhone, updatedTotalAmount, false, pdfFile.getAbsolutePath(), new ArrayList<>(cartItems));
+                            BillRecord updatedRecord = new BillRecord(
+                                    customerName,
+                                    customerPhone,
+                                    updatedTotalAmount,
+                                    false, // mark unpaid or use checkboxPaid
+                                    pdfFile.getAbsolutePath(),
+                                    new ArrayList<>(cartItems),
+                                    currentDate,
+                                    currentTime
+                            );
 
                             // Insert into SQLite local DB
                             dbHelper.insertBill(pdfFile.getAbsolutePath());

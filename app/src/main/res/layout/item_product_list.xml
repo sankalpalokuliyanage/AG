@@ -16,18 +16,25 @@
             android:id="@+id/textProductName"
             android:textSize="16sp"
             android:textStyle="bold"
+            android:textColor="@color/black"
+            android:text="Product Name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView
             android:id="@+id/textProductPrice"
             android:layout_marginTop="4dp"
+            android:text="KRW"
+            android:textSize="14sp"
+            android:textColor="#4CAF50"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/btnAdd"
+        android:backgroundTint="@color/basic_color"
         android:text="Add"
+        android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 </LinearLayout>

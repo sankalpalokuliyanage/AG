@@ -13,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:background="@color/white"
         android:gravity="center_vertical">
 
         <LinearLayout
@@ -23,18 +24,21 @@
 
             <TextView
                 android:id="@+id/textProductName"
+                android:paddingLeft="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Product Name"
-                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:textSize="20sp"
                 android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/textProductPrice"
+                android:paddingLeft="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="KRW 0"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="#4CAF50"/>
         </LinearLayout>
 
@@ -46,9 +50,11 @@
 
             <Button
                 android:id="@+id/btnMinus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:text="-" />
+                android:layout_width="49dp"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:drawableLeft="@drawable/minus"
+                android:paddingLeft="-1dp" />
 
             <!-- Editable quantity -->
             <EditText
@@ -57,14 +63,17 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="1"
+                android:textColor="@color/black"
                 android:textSize="18sp"
                 android:inputType="number" />
 
             <Button
                 android:id="@+id/btnPlus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:text="+" />
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:drawableLeft="@drawable/plus"
+                android:paddingLeft="-1dp" />
 
             <Button
                 android:id="@+id/btnDelete"
