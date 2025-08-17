@@ -65,7 +65,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
 
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPrice, textStock;
+        TextView textName, textPrice, textStock, textCode;
 
         EditText textQuantity;
         Button btnAdd, btnPlus, btnMinus, btnDelete;
@@ -76,6 +76,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             textPrice = itemView.findViewById(R.id.textProductPrice);
             textQuantity = itemView.findViewById(R.id.editQuantity);
             textStock = itemView.findViewById(R.id.textProductStock); // Only exists in item_product.xml
+            textCode = itemView.findViewById(R.id.textProductCode);
 
             if (isCartMode) {
 
@@ -101,6 +102,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         Product product = productList.get(position);
         holder.textName.setText(product.name);
         holder.textPrice.setText("KRW " + product.price);
+        holder.textCode.setText(product.barcode);
 
         if (!isCartMode) {
             if (holder.textStock != null) {
