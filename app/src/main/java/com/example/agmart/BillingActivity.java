@@ -124,6 +124,7 @@ public class BillingActivity extends AppCompatActivity {
             @Override
             public void onQuantityChanged(Product product, int newQuantity) {
                 // Not used in product list
+
             }
 
             @Override
@@ -171,14 +172,24 @@ public class BillingActivity extends AppCompatActivity {
 
 
     private void addToCart(Product product) {
+        if (product.stockQty <= 0) {
+            Toast.makeText(this, product.name + " is Out of Stock!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         for (Product p : cartItems) {
             if (p.id.equals(product.id)) {
-                p.quantity++;
+                if (p.quantity < product.stockQty) {
+                    p.quantity++;
+                } else {
+                    Toast.makeText(this, "Only " + product.stockQty + " left in stock", Toast.LENGTH_SHORT).show();
+                }
                 cartAdapter.notifyDataSetChanged();
                 updateTotal();
                 return;
             }
         }
+
         Product newProduct = new Product(product.id, product.name, product.barcode, product.price, product.stockQty);
         newProduct.quantity = 1;
         cartItems.add(newProduct);
