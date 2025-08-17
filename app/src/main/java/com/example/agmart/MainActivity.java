@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         cardProductManagement = findViewById(R.id.cardProductManagement);
         cardBillingSystem = findViewById(R.id.cardBillingSystem);
         cardInventoryControl = findViewById(R.id.cardInventoryControl);
-        cardSalesReport = findViewById(R.id.cardSalesReport);
+
 
         // Fetch product count from Firebase
         FirebaseDatabase.getInstance().getReference("products")
