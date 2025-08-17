@@ -5,7 +5,19 @@
     android:background="@color/basic_color"
     tools:context=".ProductManagementActivity">
 
+    <!-- Back Button -->
+    <Button
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/back"
+        android:layout_gravity="left"
+        android:layout_marginLeft="-23dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_marginBottom="20dp"/>
+
     <androidx.recyclerview.widget.RecyclerView
+        android:layout_below="@+id/btnBack"
         android:id="@+id/recyclerViewProducts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
