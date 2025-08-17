@@ -54,8 +54,8 @@ public class ProductManagementActivity extends AppCompatActivity {
                         intent.putExtra("id", product.id);
                         intent.putExtra("name", product.name);
                         intent.putExtra("price", product.price);
-                        intent.putExtra("code", product.barcode);
-                        intent.putExtra("stock", product.stockQty);
+                        intent.putExtra("barcode", product.barcode);
+                        intent.putExtra("stockQty", product.stockQty);
                         startActivity(intent);
                     }
 
