@@ -49,9 +49,14 @@ public class ProductManagementActivity extends AppCompatActivity {
                 new ProductAdapter.OnProductClickListener() {
                     @Override
                     public void onProductClick(Product product) {
-                        Toast.makeText(ProductManagementActivity.this,
-                                "Product: " + product.name + "\nBarcode: " + product.barcode,
-                                Toast.LENGTH_SHORT).show();
+                        // Edit product (open AddProductActivity with data)
+                        Intent intent = new Intent(ProductManagementActivity.this, AddProductActivity.class);
+                        intent.putExtra("id", product.id);
+                        intent.putExtra("name", product.name);
+                        intent.putExtra("price", product.price);
+                        intent.putExtra("code", product.barcode);
+                        intent.putExtra("stock", product.stockQty);
+                        startActivity(intent);
                     }
 
                     @Override
@@ -62,6 +67,16 @@ public class ProductManagementActivity extends AppCompatActivity {
                     @Override
                     public void onDeleteProduct(Product product) {
                         // Not used here
+                        FirebaseDatabase.getInstance().getReference("products")
+                                .child(product.id)
+                                .removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(ProductManagementActivity.this, "Deleted", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(ProductManagementActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
+                                });
+
                     }
                 });
 

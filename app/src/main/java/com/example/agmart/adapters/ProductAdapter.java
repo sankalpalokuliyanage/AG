@@ -68,7 +68,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         TextView textName, textPrice, textStock, textCode;
 
         EditText textQuantity;
-        Button btnAdd, btnPlus, btnMinus, btnDelete;
+        Button btnAdd, btnPlus, btnMinus, btnDelete, btnEdit;
 
         public ProductViewHolder(@NonNull View itemView, boolean isCartMode) {
             super(itemView);
@@ -85,7 +85,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 btnDelete = itemView.findViewById(R.id.btnDelete);
             } else {
                 btnAdd = itemView.findViewById(R.id.btnAdd);
+                btnEdit = itemView.findViewById(R.id.btnEdit);
+                btnDelete = itemView.findViewById(R.id.btnDelete);
             }
+
+
         }
     }
 
@@ -112,6 +116,20 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                 holder.btnAdd.setOnClickListener(v -> {
                     if (listener != null) {
                         listener.onProductClick(product);
+                    }
+                });
+            }
+            if (holder.btnEdit != null) {
+                holder.btnEdit.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onProductClick(product); // reuse as "edit"
+                    }
+                });
+            }
+            if (holder.btnDelete != null) {
+                holder.btnDelete.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onDeleteProduct(product);
                     }
                 });
             }
@@ -156,6 +174,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     }
                 });
             }
+
         }
     }
 
