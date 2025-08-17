@@ -106,11 +106,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         Product product = productList.get(position);
         holder.textName.setText(product.name);
         holder.textPrice.setText("KRW " + product.price);
-        holder.textCode.setText(product.barcode);
+
 
         if (!isCartMode) {
             if (holder.textStock != null) {
                 holder.textStock.setText("Stock: " + product.stockQty);
+            }
+            if (holder.textCode != null) {
+                holder.textCode.setText(product.barcode);
             }
             if (holder.btnAdd != null) {
                 holder.btnAdd.setOnClickListener(v -> {
