@@ -46,7 +46,7 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
             textPaidStatus = itemView.findViewById(R.id.textPaidStatus);
             textTotal = itemView.findViewById(R.id.textTotalAmount);
             btnMarkPaid = itemView.findViewById(R.id.btnMarkPaid);
-            btnOpenPdf = itemView.findViewById(R.id.btnOpenPdf);
+
         }
     }
 
@@ -115,32 +115,7 @@ public class UnpaidBillsAdapter extends RecyclerView.Adapter<UnpaidBillsAdapter.
             builder.show();
         });
 
-        holder.btnOpenPdf.setOnClickListener(v -> {
-            if (bill.pdfPath == null || bill.pdfPath.isEmpty()) {
-                Toast.makeText(context, "PDF not available", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
-            File pdfFile = new File(bill.pdfPath);
-            if (!pdfFile.exists()) {
-                Toast.makeText(context, "PDF file not found", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Uri pdfUri = FileProvider.getUriForFile(context,
-                    context.getPackageName() + ".fileprovider",
-                    pdfFile);
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(pdfUri, "application/pdf");
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NO_HISTORY);
-
-            if (intent.resolveActivity(context.getPackageManager()) != null) {
-                context.startActivity(intent);
-            } else {
-                Toast.makeText(context, "No app available to open PDF", Toast.LENGTH_LONG).show();
-            }
-        });
     }
 
     @Override

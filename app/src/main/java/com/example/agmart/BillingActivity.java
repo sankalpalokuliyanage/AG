@@ -342,6 +342,13 @@ public class BillingActivity extends AppCompatActivity {
             paidStatus.setAlignment(Element.ALIGN_LEFT);
             document.add(paidStatus);
 
+            // **Add Date and Time**
+            Paragraph dateTime = new Paragraph("Date: " + currentDate + "   Time: " + currentTime, infoFont);
+            dateTime.setAlignment(Element.ALIGN_LEFT);
+            document.add(dateTime);
+
+
+
             document.add(new Paragraph("\n")); // Space before title
 
             // Step 3: Title
@@ -453,7 +460,7 @@ public class BillingActivity extends AppCompatActivity {
                                     customerName,
                                     customerPhone,
                                     updatedTotalAmount,
-                                    false, // mark unpaid or use checkboxPaid
+                                    isPaid, // mark unpaid or use checkboxPaid
                                     pdfFile.getAbsolutePath(),
                                     new ArrayList<>(cartItems),
                                     currentDate,
